@@ -220,8 +220,98 @@ function saveLocalPosts(posts: ProjectPost[]) {
   }
 }
 
+const LOCAL_USERS_KEY = "ruy_usuarios";
+
+interface LocalUser {
+  id: 1 | 2 | 3;
+  email: string;
+  name: string;
+  role: "student" | "management" | "professor" | "director";
+  roleTitle: "Professor" | "Diretor" | "Aluno";
+  passwordHash: string;
+  emailSent?: boolean;
+}
+
+const defaultUsers: LocalUser[] = [
+  {
+    id: 1,
+    email: "marcio.rocha@professor.educacao.sp.gov.br",
+    name: "Prof. Márcio Rocha",
+    role: "professor",
+    roleTitle: "Professor",
+    passwordHash: "senha123",
+    emailSent: true
+  },
+  {
+    id: 2,
+    email: "direcao@educacao.sp.gov.br",
+    name: "Diretoria Ruy Rodriguez",
+    role: "director",
+    roleTitle: "Diretor",
+    passwordHash: "senha123",
+    emailSent: true
+  },
+  {
+    id: 3,
+    email: "0000110074650xsp@al.educacao.sp.gov.br",
+    name: "Angelo Gabriel (Aluno)",
+    role: "student",
+    roleTitle: "Aluno",
+    passwordHash: "senha123",
+    emailSent: true
+  }
+];
+
+function getLocalUsers(): LocalUser[] {
+  if (typeof window === "undefined") return defaultUsers;
+  try {
+    const data = localStorage.getItem(LOCAL_USERS_KEY);
+    if (!data) {
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(defaultUsers));
+      return defaultUsers;
+    }
+    return JSON.parse(data);
+  } catch {
+    return defaultUsers;
+  }
+}
+
+function saveLocalUsers(users: LocalUser[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  } catch (e) {
+    console.error("Error saving users to localStorage:", e);
+  }
+}
+
+function getLocalAccessLevel(email: string) {
+  const cleanEmail = email.toLowerCase().trim();
+
+  if (cleanEmail.endsWith("@professor.educacao.sp.gov.br")) {
+    return { id_nivel: 1 as const, roleTitle: "Professor" as const, role: "professor" as const };
+  }
+
+  if (cleanEmail.endsWith("@al.educacao.sp.gov.br")) {
+    const raPattern = /^(?:ra)?\d+[a-z0-9]?sp@al\.educacao\.sp\.gov\.br$/i;
+    if (raPattern.test(cleanEmail)) {
+      return { id_nivel: 3 as const, roleTitle: "Aluno" as const, role: "student" as const };
+    }
+  }
+
+  if (
+    cleanEmail.endsWith("@educacao.sp.gov.br") &&
+    !cleanEmail.endsWith("@professor.educacao.sp.gov.br") &&
+    !cleanEmail.endsWith("@al.educacao.sp.gov.br")
+  ) {
+    return { id_nivel: 2 as const, roleTitle: "Diretor" as const, role: "director" as const };
+  }
+
+  return null;
+}
+
 export const dbService = {
-  // --- AUTENTICAÇÃO REAL ---
+  // --- AUTENTICAÇÃO REAL COM FALLBACK DE SEGURANÇA LOCAL AUTOMÁTICO ---
   async login(email: string, senha: string): Promise<UserType> {
     try {
       const response = await fetch("/api/auth/login", {
@@ -229,6 +319,11 @@ export const dbService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha })
       });
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Servidor offline");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -238,8 +333,27 @@ export const dbService = {
       return await response.json();
     } catch (err: any) {
       console.warn("Express API falhou, usando autenticação mock (segurança apenas local):", err);
-      // Fallback local caso o servidor não esteja ativo
-      throw new Error(err.message || "Erro ao efetuar login.");
+      
+      const cleanEmail = email.trim().toLowerCase();
+      const localUsers = getLocalUsers();
+      const user = localUsers.find(u => u.email === cleanEmail);
+      
+      if (!user) {
+        throw new Error("E-mail institucional não cadastrado (Modo Simulado).");
+      }
+      
+      if (user.passwordHash !== senha) {
+        throw new Error("Senha incorreta (Modo Simulado).");
+      }
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        roleTitle: user.roleTitle,
+        emailSent: false
+      };
     }
   },
 
@@ -251,6 +365,11 @@ export const dbService = {
         body: JSON.stringify({ nome, email, senha })
       });
 
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Servidor offline");
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Erro ao cadastrar.");
@@ -258,8 +377,46 @@ export const dbService = {
 
       return await response.json();
     } catch (err: any) {
-      console.warn("Express API falhou no cadastro:", err);
-      throw new Error(err.message || "Erro ao registrar.");
+      console.warn("Express API falhou no cadastro, salvando localmente no localStorage:", err);
+      
+      const cleanEmail = email.trim().toLowerCase();
+      const localUsers = getLocalUsers();
+      
+      if (localUsers.some(u => u.email === cleanEmail)) {
+        throw new Error("E-mail já está cadastrado (Modo Simulado).");
+      }
+
+      const access = getLocalAccessLevel(cleanEmail);
+      if (!access) {
+        throw new Error(
+          "E-mail institucional inválido. Use um e-mail escolar oficial da SED:\n" +
+          "- Alunos: [RA][Dígito]sp@al.educacao.sp.gov.br\n" +
+          "- Professores: ...@professor.educacao.sp.gov.br\n" +
+          "- Diretores/Gestão: ...@educacao.sp.gov.br"
+        );
+      }
+
+      const newUser: LocalUser = {
+        id: access.id_nivel,
+        name: nome,
+        email: cleanEmail,
+        role: access.role,
+        roleTitle: access.roleTitle,
+        passwordHash: senha,
+        emailSent: false
+      };
+
+      localUsers.push(newUser);
+      saveLocalUsers(localUsers);
+
+      return {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        roleTitle: newUser.roleTitle,
+        emailSent: false
+      };
     }
   },
 
