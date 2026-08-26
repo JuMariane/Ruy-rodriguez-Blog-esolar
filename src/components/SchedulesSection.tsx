@@ -17,7 +17,7 @@ const SchedulesSection = () => {
             Rotina Escolar
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Turnos & Horários (PEI)
+            Turnos e Horários (PEI)
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-body">
             Conheça o funcionamento do Programa de Ensino Integral (PEI) e a distribuição dos horários dos nossos estudantes.
@@ -109,7 +109,7 @@ const SchedulesSection = () => {
               </div>
 
               <h3 className="font-display text-2xl font-bold text-foreground mb-3">
-                Ensino Médio & Novotec
+                Ensino Médio e Novotec
               </h3>
               <p className="text-muted-foreground text-sm font-body leading-relaxed mb-6">
                 Preparação estratégica para o ENEM, vestibulares e formação técnica integrada (Novotec) focada no ingresso imediato ao mercado de trabalho.
