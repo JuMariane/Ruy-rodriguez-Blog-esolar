@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     question: "Como obter documentos ou consultar o calendário?",
-    answer: "A secretaria e a gestão escolar oferecem canais facilitados para o atendimento de pais, alunos e comunidade externa:\n\n• Documentos Escolares (Histórico, Declaração de Matrícula, etc.): Podem ser solicitados presencialmente na secretaria da escola durante o horário de atendimento, pelo telefone (19) 3261-1256 ou pelo e-mail institucional e905471a@educacao.sp.gov.br. Muitos documentos de matrícula e boletins também podem ser emitidos de forma 100% digital através da plataforma Secretaria Escolar Digital (SED).\n• Calendário Escolar e Cardápios: Disponibilizamos na nossa aba de Documentos & Downloads do site o arquivo PDF do Calendário Escolar 2026 completo (com reuniões de pais, recessos, exames e conselhos de classe), além do Cardápio Semanal atualizado e a Lista de Materiais básicos recomendados para cada segmento.",
+    answer: "A secretaria e a gestão escolar oferecem canais facilitados para o atendimento de pais, alunos e comunidade externa:\n\n• Documentos Escolares (Histórico, Declaração de Matrícula, etc.): Podem ser solicitados presencialmente na secretaria da escola durante o horário de atendimento, pelo telefone (19) 3261-1256 ou pelo e-mail institucional e905471a@educacao.sp.gov.br. Muitos documentos de matrícula e boletins também podem ser emitidos de forma 100% digital através da plataforma Secretaria Escolar Digital (SED).\n• Calendário Escolar e Cardápios: Disponibilizamos na nossa aba de Documentos e Downloads do site o arquivo PDF do Calendário Escolar 2026 completo (com reuniões de pais, recessos, exames e conselhos de classe), além do Cardápio Semanal atualizado e a Lista de Materiais básicos recomendados para cada segmento.",
   },
 ];
 
@@ -43,7 +43,7 @@ const FAQSection = () => {
             Dúvidas Frequentes
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Perguntas & Respostas
+            Perguntas e Respostas
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-body">
             Ficou com alguma dúvida sobre a nossa escola? Encontre respostas rápidas para as principais dúvidas.

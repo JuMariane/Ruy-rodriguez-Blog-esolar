@@ -57,7 +57,7 @@ const SchedulesSection = () => {
                     <Coffee className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground">Acolhimento & Café da Manhã</h4>
+                    <h4 className="text-sm font-semibold text-foreground">Acolhimento e Café da Manhã</h4>
                     <p className="text-xs text-muted-foreground">Início às 07h00 com recepção calorosa dos professores tutores e café da manhã balanceado.</p>
                   </div>
                 </div>
@@ -67,7 +67,7 @@ const SchedulesSection = () => {
                     <BookOpen className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground">Rotina de Estudos & Tutoria</h4>
+                    <h4 className="text-sm font-semibold text-foreground">Rotina de Estudos e Tutoria</h4>
                     <p className="text-xs text-muted-foreground">Aulas dinâmicas da Base Comum combinadas com orientação de estudos e laboratórios práticos.</p>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ const SchedulesSection = () => {
                     <Utensils className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground">Lanche da Tarde & Jantar</h4>
+                    <h4 className="text-sm font-semibold text-foreground">Lanche da Tarde e Jantar</h4>
                     <p className="text-xs text-muted-foreground">Lanche reforçado à tarde e jantar completo e nutritivo oferecidos gratuitamente no período da noite.</p>
                   </div>
                 </div>

@@ -36,7 +36,7 @@ const CookieConsent = () => {
             </div>
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-foreground font-display">
-                Política de Privacidade & Cookies (LGPD)
+                Política de Privacidade e Cookies (LGPD)
               </h4>
               <p className="text-[11px] text-muted-foreground font-body leading-relaxed">
                 Este portal acadêmico utiliza cookies para coletar estatísticas anônimas de acessos e garantir a segurança das sessões de login dos alunos e professores, em total conformidade com a Lei Geral de Proteção de Dados (LGPD).

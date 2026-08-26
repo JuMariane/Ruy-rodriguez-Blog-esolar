@@ -137,7 +137,7 @@ const AboutSection = () => {
           >
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-semibold uppercase tracking-wider mb-6">
-                <Info className="w-3.5 h-3.5" /> Ficha Técnica & Recursos
+                <Info className="w-3.5 h-3.5" /> Ficha Técnica e Recursos
               </div>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">
                 Infraestrutura Completa

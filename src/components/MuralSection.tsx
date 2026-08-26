@@ -684,10 +684,10 @@ const MuralSection = ({
           className="text-center mb-16"
         >
           <span className="text-xs font-bold tracking-widest uppercase text-primary bg-primary/10 px-4 py-1.5 rounded-full inline-block mb-3">
-            Mural da Comunidade & Moderação
+            Mural da Comunidade e Moderação
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Projetos, Eletivas & Recados
+            Projetos, Eletivas e Recados
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-body">
             O nosso espaço interativo de exposição. Acompanhe os projetos das Eletivas, Clubes, Cursos Técnicos/Novotec e recados importantes.
