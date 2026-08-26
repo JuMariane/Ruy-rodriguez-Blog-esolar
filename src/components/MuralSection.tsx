@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, ArrowRight, Plus, X, Image, Search, Heart, Pin, Trash2 } from "lucide-react";
+import { Calendar, ArrowRight, Plus, X, Image, Search, Heart, Pin, Trash2, CheckCircle2, Clock, Check, AlertCircle, Eye, ShieldCheck, User } from "lucide-react";
 import { toast } from "sonner";
 
 import projetoBanner from "@/assets/projeto-banner.jpg";
@@ -24,6 +24,8 @@ import teatroOriki2 from "@/assets/scraped_gallery/teatro_oriki_2.jpg";
 import sambaRuy1 from "@/assets/scraped_gallery/samba_ruy_1.jpg";
 
 import { dbService, ProjectPost } from "../lib/dbService";
+import { UserType } from "./LoginModal";
+import ProjectDetailsModal, { ProjectDetails } from "./ProjectDetailsModal";
 
 const tagColors: Record<string, string> = {
   Eletivas: "bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/60",
@@ -34,16 +36,54 @@ const tagColors: Record<string, string> = {
   Recado: "bg-sky-100 text-sky-700 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/60",
 };
 
-import { UserType } from "./LoginModal";
-import ProjectDetailsModal, { ProjectDetails } from "./ProjectDetailsModal";
-
 interface MuralSectionProps {
   user: UserType | null;
   onOpenLogin: () => void;
+  activeModerationTab?: "approved" | "pending";
+  onModerationTabChange?: (tab: "approved" | "pending") => void;
+  onPendingCountChange?: (count: number) => void;
+  isCreateModalOpen?: boolean;
+  onCloseCreateModal?: () => void;
 }
+
+// Helper para mascarar o e-mail do aluno (RA) para privacidade (TCC/LGPD)
+const maskEmail = (emailStr?: string) => {
+  if (!emailStr) return "";
+  const parts = emailStr.split("@");
+  if (parts.length !== 2) return emailStr;
+  const username = parts[0];
+  const domain = parts[1];
+  
+  if (domain.endsWith("al.educacao.sp.gov.br")) {
+    if (username.length > 6) {
+      // 0000110074650xsp -> 0000••••••xsp
+      return `${username.substring(0, 4)}••••••${username.substring(username.length - 3)}@${domain}`;
+    }
+    return `••••••sp@${domain}`;
+  }
+  return emailStr;
+};
+
+const getPostImage = (post: ProjectPost): string => {
+  const titleLower = (post.title || "").toLowerCase();
+  if (titleLower.includes("chiquinha")) return chiquinhaImg;
+  if (titleLower.includes("nzinga")) return nzingaImg;
+  if (titleLower.includes("samba")) return sambaRuy;
+  if (titleLower.includes("olorum") || titleLower.includes("oriki") || titleLower.includes("teatro") || titleLower.includes("máscara") || titleLower.includes("mascara")) return teatroOriki;
+  if (titleLower.includes("iac") || titleLower.includes("agronômico") || titleLower.includes("agronomico")) return visitaIac;
+  if (titleLower.includes("bacia") || titleLower.includes("hidrográfica") || titleLower.includes("hidrografica")) return baciaHidro;
+  if (titleLower.includes("ana luiza") || titleLower.includes("virti")) return investigacao1;
+  if (titleLower.includes("investigação") || titleLower.includes("investigacao") || titleLower.includes("banner") || titleLower.includes("graffiti") || titleLower.includes("maculelê") || titleLower.includes("maculele")) return projetoBanner;
+  
+  if (post.image && !post.image.includes("unsplash.com") && (post.image.startsWith("data:") || post.image.startsWith("blob:") || post.image.startsWith("/"))) {
+    return post.image;
+  }
+  return projetoBanner;
+};
 
 const mapPostToDetails = (post: ProjectPost): ProjectDetails => {
   const titleLower = post.title.toLowerCase();
+  const realImage = getPostImage(post);
   
   if (titleLower.includes("chiquinha")) {
     return {
@@ -52,7 +92,7 @@ const mapPostToDetails = (post: ProjectPost): ProjectDetails => {
       date: post.date,
       description: post.description,
       tag: "Antirracismo",
-      image: post.image,
+      image: realImage,
       fullDescription: [
         "Atividade desenvolvida pelos sétimos anos da PEI Ruy Rodriguez (orientada pelo professor Márcio Pimentel Rocha) sobre a pianista e compositora Chiquinha Gonzaga, de descendência negra. Ela compôs grandes sucessos do carnaval de sua época, como \"O abre alas\".",
         "O projeto buscou discutir o protagonismo de figuras negras na história e na música brasileira, combatendo preconceitos e resgatando memórias históricas importantes.",
@@ -78,7 +118,7 @@ const mapPostToDetails = (post: ProjectPost): ProjectDetails => {
       fullDescription: [
         "Atividade interdisciplinar sobre a lendária rainha guerreira Nzinga Mbandi de Matamba e Ndongo, e sua liderança na resistência contra o sistema escravocrata e a colonização portuguesa, realizada com os sétimos anos.",
         "Orientação: Professor Márcio Pimentel Rocha.",
-        "Habilidade Pedagógica: EF07HI20* (Identificar e debater os costumes, tradições, formas de resistência e a organização social e política de populações de origem africana, com destaque para as lideranças femininas na luta contra o sistema colonial)."
+        "Habilidade Pedagógica: EF07HI20* (Identificar e debater os costumes, traditions, formas de resistência e a organização social e política de populações de origem africana, com destaque para as lideranças femininas na luta contra o sistema colonial)."
       ],
       videos: [
         "https://video.wordpress.com/embed/PJRbuXQB?cover=1&preloadContent=metadata&useAverageColor=1&hd=0"
@@ -276,6 +316,44 @@ const mapPostToDetails = (post: ProjectPost): ProjectDetails => {
     };
   }
 
+  if (titleLower.includes("graffiti") || titleLower.includes("grafite")) {
+    return {
+      title: post.title,
+      subtitle: post.subtitle,
+      date: post.date,
+      description: post.description,
+      tag: "Cultura",
+      image: post.image,
+      fullDescription: [
+        "Realizado ao longo de seis meses em duas escolas estaduais de Campinas — E.E. Ruy Rodriguez e E.E. Maria Helena Antônio Cardoso —, o projeto promoveu oficinas de graffiti que combinaram prática, repertório e troca direta com artistas da cena local.",
+        "Mais do que aprender técnica, os alunos ocuparam os espaços da escola com suas próprias linguagens, transformando muros em murais coletivos e vivenciando a arte urbana como expressão crítica, estética e política.",
+        "O projeto proporcionou um diálogo potente entre juventude, território e cultura urbana na rede pública paulista."
+      ],
+      gallery: [projetoBanner],
+      videos: [],
+      originalUrl: "https://escolaruyrodriguez.wordpress.com/2026/08/13/graffiti-nas-escolas/"
+    };
+  }
+
+  if (titleLower.includes("ana luiza") || titleLower.includes("virti")) {
+    return {
+      title: post.title,
+      subtitle: post.subtitle,
+      date: post.date,
+      description: post.description,
+      tag: "Ciências",
+      image: post.image,
+      fullDescription: [
+        "Diário de bordo: Jornada de Investigação Científica – novembro de 2025. Relatório – Eletiva de Iniciação Científica (Estudante: Ana Luiza Virti).",
+        "Participar da Eletiva de Iniciação Científica foi uma experiência extremamente enriquecedora e divertida. Realizamos diferentes atividades e visitas, como a ida ao bairro Itajaí para observarmos a situação da água em um trecho do rio e compreendermos a importância do saneamento básico e preservação das matas ciliares.",
+        "As coletas e análises laboratoriais permitiram compreender na prática como a pesquisa científica pode transformar e cuidar da nossa comunidade local."
+      ],
+      gallery: [investigacao1, investigacao2],
+      videos: [],
+      originalUrl: "https://escolaruyrodriguez.wordpress.com/2025/11/29/jornada-de-investigacao-cientifica-relatorio-da-estudante-ana-luiza-virti/"
+    };
+  }
+
   return {
     title: post.title,
     subtitle: post.subtitle,
@@ -290,12 +368,27 @@ const mapPostToDetails = (post: ProjectPost): ProjectDetails => {
   };
 };
 
-const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
+const MuralSection = ({
+  user,
+  onOpenLogin,
+  activeModerationTab: externalModerationTab,
+  onModerationTabChange,
+  onPendingCountChange,
+  isCreateModalOpen,
+  onCloseCreateModal,
+}: MuralSectionProps) => {
   const [projectList, setProjectList] = useState<ProjectPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<ProjectDetails | null>(null);
 
-  // Keep track of liked posts in this browser session
+  const [internalModerationTab, setInternalModerationTab] = useState<"approved" | "pending">("approved");
+  const currentTab = externalModerationTab || internalModerationTab;
+
+  const handleTabChange = (tab: "approved" | "pending") => {
+    setInternalModerationTab(tab);
+    onModerationTabChange?.(tab);
+  };
+
   const [likedPosts, setLikedPosts] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("ruy_mural_liked_ids");
@@ -310,20 +403,23 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     return [];
   });
 
-  // Load posts from database service on mount
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const posts = await dbService.getPosts();
+      setProjectList(posts);
+      
+      const pendingCount = posts.filter(p => p.status === "pending").length;
+      onPendingCountChange?.(pendingCount);
+    } catch (err) {
+      console.error("Erro ao carregar posts:", err);
+      toast.error("Erro ao carregar os posts do mural.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const posts = await dbService.getPosts();
-        setProjectList(posts);
-      } catch (err) {
-        console.error("Erro ao carregar posts:", err);
-        toast.error("Erro ao carregar os posts do mural.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPosts();
   }, []);
 
@@ -331,17 +427,25 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     localStorage.setItem("ruy_mural_liked_ids", JSON.stringify(likedPosts));
   }, [likedPosts]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  useEffect(() => {
+    const count = projectList.filter(p => p.status === "pending").length;
+    onPendingCountChange?.(count);
+  }, [projectList, onPendingCountChange]);
 
-  // Search & Filters states
+  const [internalModalOpen, setInternalModalOpen] = useState(false);
+  const isModalOpen = isCreateModalOpen !== undefined ? isCreateModalOpen : internalModalOpen;
+  
+  const handleCloseModal = () => {
+    setInternalModalOpen(false);
+    onCloseCreateModal?.();
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("Todos");
 
-  // Form states
   const [selectedTag, setSelectedTag] = useState("Eletivas");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [author, setAuthor] = useState("");
-  const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
@@ -351,7 +455,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size is under 15MB for local compression (browser limit)
       if (file.size > 15 * 1024 * 1024) {
         toast.error("A imagem selecionada é muito grande. Escolha uma foto com menos de 15MB.");
         return;
@@ -363,10 +466,9 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
         const img = new window.Image();
         img.src = reader.result as string;
         img.onload = () => {
-          // Compress using canvas to prevent exceeding localStorage quota
           const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 600; // Optimal width for cards
-          const MAX_HEIGHT = 450; // Optimal height for cards
+          const MAX_WIDTH = 600;
+          const MAX_HEIGHT = 450;
           let width = img.width;
           let height = img.height;
 
@@ -387,8 +489,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
           const ctx = canvas.getContext("2d");
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            // Get compressed jpeg data url (quality 0.6)
-            // This compresses images to ~20-50KB instead of 3MB+!
             const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
             setImagePreview(compressedDataUrl);
           } else {
@@ -408,26 +508,40 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     }
 
     const authorDisplayName = isAnonymous ? "Anônimo" : author;
+    const isStudent = user?.id === 3;
+    const postStatus = isStudent ? "pending" : "approved";
 
     const newPost: ProjectPost = {
       id: `custom-${Date.now()}`,
       title,
       subtitle: subtitle || authorDisplayName,
-      date: "Hoje",
+      date: isStudent ? "Aguardando Aprovação" : "Hoje",
       description,
       tag: selectedTag,
-      image: imagePreview || "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&auto=format&fit=crop&q=60",
+      image: imagePreview || projetoBanner,
       link: link || "#",
       likes: 0,
       authorEmail: user?.email,
+      authorId: user?.id,
+      authorRole: user?.roleTitle || (user?.role === "management" ? "Gestão" : "Aluno"),
+      status: postStatus,
     };
 
     try {
       const createdPost = await dbService.createPost(newPost);
       setProjectList([createdPost, ...projectList]);
-      toast.success("Publicação adicionada ao mural com sucesso!");
 
-      // Reset states
+      if (isStudent) {
+        toast.info("Sugestão enviada com sucesso!", {
+          description: "Sua postagem entrou na fila de moderação e será avaliada por um Professor (ID 1) ou Diretor (ID 2) antes de ser publicada.",
+          duration: 7000,
+        });
+      } else {
+        toast.success("Publicação adicionada ao mural com sucesso!", {
+          description: "Como moderador(a), seu conteúdo foi publicado diretamente no mural público."
+        });
+      }
+
       setTitle("");
       setSubtitle("");
       setAuthor("");
@@ -436,10 +550,34 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
       setImageFile(null);
       setImagePreview(null);
       setLink("");
-      setIsModalOpen(false);
+      handleCloseModal();
     } catch (error) {
       console.error("Erro ao publicar:", error);
       toast.error("Erro ao salvar! A imagem pode ser muito pesada ou ocorreu um erro de conexão.");
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      await dbService.approvePost(id);
+      setProjectList(prev => prev.map(p => p.id === id ? { ...p, status: "approved", date: "Recém-Aprovado" } : p));
+      toast.success("Publicação aprovada com sucesso!", {
+        description: "O projeto agora está disponível publicamente para todos os visitantes e alunos no Mural."
+      });
+    } catch (error) {
+      console.error("Erro ao aprovar:", error);
+      toast.error("Erro ao aprovar publicação.");
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await dbService.rejectPost(id);
+      setProjectList(prev => prev.filter(p => p.id !== id));
+      toast.success("Solicitação recusada e removida com sucesso.");
+    } catch (error) {
+      console.error("Erro ao recusar:", error);
+      toast.error("Erro ao remover solicitação.");
     }
   };
 
@@ -452,16 +590,13 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     let newLikedPosts = [...likedPosts];
 
     if (isAlreadyLiked) {
-      // Unlike
       newLikes = Math.max(0, post.likes - 1);
       newLikedPosts = likedPosts.filter((postId) => postId !== id);
     } else {
-      // Like
       newLikes = post.likes + 1;
       newLikedPosts = [...likedPosts, id];
     }
 
-    // Optimistic UI update
     setLikedPosts(newLikedPosts);
     setProjectList(
       projectList.map((p) => p.id === id ? { ...p, likes: newLikes } : p)
@@ -471,7 +606,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
       await dbService.updateLikes(id, newLikes);
     } catch (error) {
       console.error("Erro ao curtir:", error);
-      // Rollback
       setLikedPosts(likedPosts);
       setProjectList(projectList);
       toast.error("Erro de conexão ao curtir publicação.");
@@ -483,8 +617,9 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     if (!postToDelete) return;
 
     const canDelete =
-      user?.role === "management" ||
-      (user?.role === "student" && postToDelete.authorEmail === user.email);
+      user?.id === 1 ||
+      user?.id === 2 ||
+      (user?.id === 3 && postToDelete.authorEmail === user.email);
 
     if (!canDelete) {
       toast.error("Você não tem permissão para excluir esta publicação.");
@@ -492,8 +627,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     }
 
     const prevList = [...projectList];
-
-    // Optimistic UI update
     setProjectList(projectList.filter((p) => p.id !== id));
 
     try {
@@ -501,22 +634,26 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
       toast.success("Publicação excluída com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir:", error);
-      // Rollback
       setProjectList(prevList);
       toast.error("Erro ao excluir publicação. Verifique sua conexão.");
     }
   };
 
-  // Prefill author name when modal opens
   useEffect(() => {
     if (isModalOpen && user) {
-      setAuthor(user.name);
+      setAuthor(user.name || (user as any).nome || "Estudante");
     }
   }, [isModalOpen, user]);
 
+  const [title, setTitle] = useState("");
+  const isModerator = user?.id === 1 || user?.id === 2;
+
+  const approvedPosts = projectList.filter(p => !p.status || p.status === "approved");
+  const pendingPosts = projectList.filter(p => p.status === "pending");
+
   const filters = ["Todos", "Eletivas", "Clubes", "Técnico / Novotec", "Ciências", "Cultura", "Recado"];
 
-  const filteredProjects = projectList.filter((project) => {
+  const filteredApprovedProjects = approvedPosts.filter((project) => {
     const matchesFilter = activeFilter === "Todos" || project.tag === activeFilter;
     const matchesSearch = 
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -526,10 +663,19 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
     return matchesFilter && matchesSearch;
   });
 
+  const filteredPendingProjects = pendingPosts.filter((project) => {
+    return (
+      project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.tag.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
   return (
     <section id="mural" className="py-24 bg-school-cream/35 border-y border-border/80 scroll-mt-16">
       <div className="container mx-auto px-4">
-        {/* Header Exclusivo e Bonito do Mural */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -538,7 +684,7 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
           className="text-center mb-16"
         >
           <span className="text-xs font-bold tracking-widest uppercase text-primary bg-primary/10 px-4 py-1.5 rounded-full inline-block mb-3">
-            Mural da Comunidade
+            Mural da Comunidade & Moderação
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
             Projetos, Eletivas & Recados
@@ -553,57 +699,121 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:24px_24px] dark:opacity-[0.05]" />
 
           {/* Banner Informativo & CTA */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-2xl bg-school-cream/40 border border-border/60 mb-10 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-2xl bg-school-cream/40 border border-border/60 mb-8 relative z-10">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Pin className="w-5 h-5 text-primary rotate-45" />
               </div>
               <div>
-                <h3 className="font-display font-bold text-foreground text-base mb-1">
+                <h3 className="font-display font-bold text-foreground text-base mb-1 flex items-center gap-2">
                   Espaço Colaborativo Ruy Rodriguez
+                  {user && (
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                      user.id === 1 
+                        ? "bg-primary text-primary-foreground" 
+                        : user.id === 2 
+                        ? "bg-amber-500 text-amber-950" 
+                        : "bg-emerald-600 text-white"
+                    }`}>
+                      ID {user.id} · {user.roleTitle}
+                    </span>
+                  )}
                 </h3>
                 <p className="text-xs text-muted-foreground font-body leading-relaxed max-w-xl">
                   {user 
-                    ? `Identificado como ${user.role === "management" ? "Gestão" : "Estudante"}. Compartilhe o que você anda criando!`
-                    : "Espaço restrito para alunos e gestão. Entre com seu e-mail acadêmico para publicar ou remover postagens."}
+                    ? isModerator
+                      ? "Você tem privilégios de moderação. Revise as solicitações pendentes enviadas pelos alunos e publique conteúdos oficiais."
+                      : "Identificado como Aluno (Editor). Compartilhe seus projetos e recados! Suas postagens serão revisadas pelos professores."
+                    : "Espaço restrito para alunos e gestão. Entre com seu e-mail acadêmico para publicar ou moderar postagens."}
                 </p>
               </div>
             </div>
+            
             <button
               onClick={() => {
                 if (!user) {
                   toast.error("Acesso Restrito", {
-                    description: "Por favor, faça login com seu e-mail acadêmico para publicar no mural."
+                    description: "Por favor, faça login com seu e-mail institucional ou selecione um perfil de teste do TCC para publicar."
                   });
                   onOpenLogin();
                 } else {
-                  setIsModalOpen(true);
+                  setInternalModalOpen(true);
                 }
               }}
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-school-red-dark active:scale-[0.98] hover:scale-[1.02] transition-all shrink-0 shadow-hero"
             >
-              <Plus className="w-4 h-4" /> Criar Publicação
+              <Plus className="w-4 h-4" /> {isModerator ? "Nova Publicação Oficial" : user?.id === 3 ? "Enviar Sugestão" : "Criar Publicação"}
             </button>
           </div>
+
+          {/* Moderation Tabs Header */}
+          {isModerator && (
+            <div className="flex flex-wrap items-center gap-2 mb-8 p-1.5 bg-muted/60 border border-border rounded-2xl relative z-10 w-fit max-w-full">
+              <button
+                type="button"
+                onClick={() => handleTabChange("approved")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  currentTab === "approved"
+                    ? "bg-card text-foreground shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                }`}
+              >
+                <CheckCircle2 className={`w-4 h-4 ${currentTab === "approved" ? "text-emerald-500" : ""}`} />
+                <span>Mural Público (Aprovados)</span>
+                <span className="px-2 py-0.5 rounded-full bg-muted text-foreground/70 text-[10px] font-bold">
+                  {approvedPosts.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange("pending")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
+                  currentTab === "pending"
+                    ? "bg-card text-foreground shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                }`}
+              >
+                <Clock className={`w-4 h-4 ${currentTab === "pending" ? "text-amber-500 animate-pulse" : ""}`} />
+                <span>Solicitações para Aprovação</span>
+                {pendingPosts.length > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-extrabold shadow-sm animate-pulse">
+                    {pendingPosts.length}
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-muted text-foreground/70 text-[10px] font-bold">
+                    0
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Barra de Filtros e Busca */}
           <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
             {/* Categorias (Filtros) */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-none w-full lg:w-auto">
-              {filters.map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
-                    activeFilter === filter
-                      ? "bg-primary border-primary text-primary-foreground shadow-sm"
-                      : "bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
+            {(!isModerator || currentTab === "approved") ? (
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-none w-full lg:w-auto">
+                {filters.map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                      activeFilter === filter
+                        ? "bg-primary border-primary text-primary-foreground shadow-sm"
+                        : "bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20">
+                <AlertCircle className="w-4 h-4" />
+                <span>Exibindo publicações enviadas por Alunos (ID 3) aguardando sua revisão</span>
+              </div>
+            )}
 
             {/* Input de Busca */}
             <div className="relative shrink-0 w-full lg:w-80">
@@ -620,122 +830,237 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
             </div>
           </div>
 
-          {/* Grid de Projetos */}
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 animate-fade-in">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="bg-card rounded-2xl overflow-hidden border border-border/85 p-6 space-y-5 animate-pulse">
-                  <div className="aspect-[16/10] bg-muted rounded-xl" />
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <div className="h-3 bg-muted rounded w-1/4" />
-                      <div className="h-3 bg-muted rounded w-1/5" />
+          {/* Grid de Projetos Aprovados */}
+          {(!isModerator || currentTab === "approved") && (
+            <>
+              {loading ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 animate-fade-in">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="bg-card rounded-2xl overflow-hidden border border-border/85 p-6 space-y-5 animate-pulse">
+                      <div className="aspect-[16/10] bg-muted rounded-xl" />
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <div className="h-3 bg-muted rounded w-1/4" />
+                          <div className="h-3 bg-muted rounded w-1/5" />
+                        </div>
+                        <div className="h-5 bg-muted rounded w-3/4" />
+                        <div className="space-y-2">
+                          <div className="h-3 bg-muted rounded w-full" />
+                          <div className="h-3 bg-muted rounded w-5/6" />
+                        </div>
+                      </div>
+                      <div className="h-10 bg-muted/40 rounded-xl w-full pt-4" />
                     </div>
-                    <div className="h-5 bg-muted rounded w-3/4" />
-                    <div className="space-y-2">
-                      <div className="h-3 bg-muted rounded w-full" />
-                      <div className="h-3 bg-muted rounded w-5/6" />
-                    </div>
-                  </div>
-                  <div className="h-10 bg-muted/40 rounded-xl w-full pt-4" />
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
+              ) : (
+                <>
+                  <motion.div layout className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                    <AnimatePresence mode="popLayout">
+                      {filteredApprovedProjects.map((project) => {
+                        const isLiked = likedPosts.includes(project.id);
+                        return (
+                          <motion.article
+                            key={project.id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: -30 }}
+                            transition={{ duration: 0.4 }}
+                            className="group bg-card rounded-2xl overflow-hidden border border-border/80 hover:shadow-elevated hover:border-primary/20 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                            onClick={() => setSelectedProject(mapPostToDetails(project))}
+                          >
+                            <div>
+                              <div className="aspect-[16/10] overflow-hidden bg-muted relative">
+                                <img
+                                  src={getPostImage(project)}
+                                  alt={project.title}
+                                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                  <span className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm ${tagColors[project.tag] || "bg-muted text-muted-foreground"}`}>
+                                    {project.tag}
+                                  </span>
+                                  {project.status === "approved" && project.authorRole && (
+                                    <span className="text-[9px] font-extrabold bg-black/60 text-white backdrop-blur-md px-2 py-0.5 rounded-full">
+                                      {project.authorRole.includes("Professor") ? "Professor" : project.authorRole.includes("Diretor") ? "Diretor" : "Aluno"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="p-6">
+                                <div className="flex items-center justify-between mb-3 text-[10px] text-muted-foreground">
+                                  <span className="font-semibold text-primary/80">{project.subtitle}</span>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3.5 h-3.5" />
+                                    {project.date}
+                                  </span>
+                                </div>
+
+                                <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                                  {project.title}
+                                </h3>
+                                <p className="text-xs text-muted-foreground font-body leading-relaxed line-clamp-4">
+                                  {project.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-6 pb-6 pt-2 border-t border-border/30 flex items-center justify-between">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProject(mapPostToDetails(project));
+                                }}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-school-red-dark transition-colors cursor-pointer"
+                              >
+                                Saiba mais <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+
+                              <div className="flex items-center gap-2">
+                                {user && (isModerator || (user.id === 3 && project.authorEmail === user.email)) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(project.id);
+                                    }}
+                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                    title="Excluir publicação"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLike(project.id);
+                                  }}
+                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                    isLiked
+                                      ? "bg-rose-500/10 text-rose-500"
+                                      : "text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5"
+                                  }`}
+                                  title={isLiked ? "Descurtir" : "Curtir"}
+                                >
+                                  <Heart className={`w-3.5 h-3.5 transition-transform duration-250 ${isLiked ? "fill-rose-500 scale-110" : ""}`} />
+                                  <span>{project.likes}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </motion.article>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {filteredApprovedProjects.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-20 relative z-10"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-6 h-6 text-muted-foreground/60" />
+                      </div>
+                      <h3 className="font-display font-bold text-lg text-foreground mb-1">Nenhuma publicação encontrada</h3>
+                      <p className="text-muted-foreground text-xs font-body max-w-sm mx-auto">
+                        Tente ajustar os termos da pesquisa ou selecione outra categoria para ver outros posts.
+                      </p>
+                    </motion.div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {/* Grid de Solicitações Pendentes (Exclusivo para ID 1 e ID 2 na aba Pendentes) */}
+          {isModerator && currentTab === "pending" && (
             <>
               <motion.div layout className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
                 <AnimatePresence mode="popLayout">
-                  {filteredProjects.map((project) => {
-                    const isLiked = likedPosts.includes(project.id);
+                  {filteredPendingProjects.map((pendingPost) => {
                     return (
                       <motion.article
-                        key={project.id}
+                        key={pendingPost.id}
                         layout
                         initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: -30 }}
                         transition={{ duration: 0.4 }}
-                        className="group bg-card rounded-2xl overflow-hidden border border-border/80 hover:shadow-elevated hover:border-primary/20 transition-all duration-300 flex flex-col justify-between cursor-pointer"
-                        onClick={() => setSelectedProject(mapPostToDetails(project))}
+                        className="bg-card rounded-2xl overflow-hidden border-2 border-amber-500/40 shadow-soft flex flex-col justify-between relative group"
                       >
+                        <div className="bg-amber-500 text-amber-950 px-4 py-1.5 flex items-center justify-between text-[11px] font-bold">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" /> Pendente de Aprovação
+                          </span>
+                          <span className="bg-amber-950 text-amber-100 px-2 py-0.2 rounded-full text-[9px]">
+                            ID 3 · Aluno
+                          </span>
+                        </div>
+
                         <div>
-                          {/* Image section */}
                           <div className="aspect-[16/10] overflow-hidden bg-muted relative">
                             <img
-                              src={project.image}
-                              alt={project.title}
-                              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                              src={getPostImage(pendingPost)}
+                              alt={pendingPost.title}
+                              className="w-full h-full object-cover"
                             />
                             <div className="absolute top-3 left-3">
-                              <span className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm ${tagColors[project.tag] || "bg-muted text-muted-foreground"}`}>
-                                {project.tag}
+                              <span className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm ${tagColors[pendingPost.tag] || "bg-muted text-muted-foreground"}`}>
+                                {pendingPost.tag}
                               </span>
                             </div>
                           </div>
 
-                          {/* Content Section */}
                           <div className="p-6">
-                            <div className="flex items-center justify-between mb-3 text-[10px] text-muted-foreground">
-                              <span className="font-semibold text-primary/80">{project.subtitle}</span>
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3.5 h-3.5" />
-                                {project.date}
+                            <div className="flex items-center justify-between mb-2 text-[10px] text-muted-foreground">
+                              <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                {pendingPost.subtitle}
+                              </span>
+                              {/* E-mail mascarado para não ficar legível ao público */}
+                              <span className="text-[10px] font-mono text-muted-foreground" title="E-mail institucional protegido">
+                                {maskEmail(pendingPost.authorEmail) || "0000••••••sp@al.educacao.sp.gov.br"}
                               </span>
                             </div>
 
-                            <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                              {project.title}
+                            <h3 className="font-display text-lg font-bold text-foreground mb-2 line-clamp-2">
+                              {pendingPost.title}
                             </h3>
                             <p className="text-xs text-muted-foreground font-body leading-relaxed line-clamp-4">
-                              {project.description}
+                              {pendingPost.description}
                             </p>
                           </div>
                         </div>
 
-                        {/* Footer Actions inside Card */}
-                        <div className="px-6 pb-6 pt-2 border-t border-border/30 flex items-center justify-between">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedProject(mapPostToDetails(project));
-                            }}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-school-red-dark transition-colors cursor-pointer"
-                          >
-                            Saiba mais <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-
-                          <div className="flex items-center gap-2">
-                            {/* Delete button (visible to Gestão for all, and to Student only for their own posts) */}
-                            {user && (user.role === "management" || (user.role === "student" && project.authorEmail === user.email)) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(project.id);
-                                }}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                title="Excluir publicação"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-
-                            {/* Like button */}
+                        <div className="p-4 bg-muted/40 border-t border-border/80 flex flex-col gap-2.5">
+                          <div className="flex items-center justify-between gap-2">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLike(project.id);
-                              }}
-                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                                isLiked
-                                  ? "bg-rose-500/10 text-rose-500"
-                                  : "text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5"
-                              }`}
-                              title={isLiked ? "Descurtir" : "Curtir"}
+                              type="button"
+                              onClick={() => handleApprove(pendingPost.id)}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98]"
                             >
-                              <Heart className={`w-3.5 h-3.5 transition-transform duration-250 ${isLiked ? "fill-rose-500 scale-110" : ""}`} />
-                              <span>{project.likes}</span>
+                              <Check className="w-4 h-4" /> Aprovar Publicação
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleReject(pendingPost.id)}
+                              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-destructive/10 hover:bg-destructive hover:text-white text-destructive font-semibold text-xs border border-destructive/20 transition-all active:scale-[0.98]"
+                              title="Recusar e excluir postagem"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Recusar
                             </button>
                           </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProject(mapPostToDetails(pendingPost))}
+                            className="w-full text-center text-[11px] font-semibold text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1 transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Pré-visualizar conteúdo completo
+                          </button>
                         </div>
                       </motion.article>
                     );
@@ -743,20 +1068,28 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                 </AnimatePresence>
               </motion.div>
 
-              {/* Empty State */}
-              {filteredProjects.length === 0 && (
+              {filteredPendingProjects.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-20 relative z-10"
+                  className="text-center py-16 p-8 rounded-3xl bg-muted/20 border border-border/60 relative z-10"
                 >
-                  <div className="w-16 h-16 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-6 h-6 text-muted-foreground/60" />
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="font-display font-bold text-lg text-foreground mb-1">Nenhuma publicação encontrada</h3>
-                  <p className="text-muted-foreground text-xs font-body max-w-sm mx-auto">
-                    Tente ajustar os termos da pesquisa ou selecione outra categoria para ver outros posts.
+                  <h3 className="font-display font-bold text-xl text-foreground mb-1">
+                    Tudo em dia com a moderação!
+                  </h3>
+                  <p className="text-muted-foreground text-xs font-body max-w-md mx-auto mb-4">
+                    Não há nenhuma solicitação pendente no momento. Todas as postagens enviadas pelos estudantes foram revisadas e aprovadas.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("approved")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-school-red-dark transition-colors"
+                  >
+                    Ver Mural Público <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </motion.div>
               )}
             </>
@@ -768,42 +1101,56 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               className="absolute inset-0 bg-background/80 backdrop-blur-md"
             />
 
-            {/* Modal Container */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="bg-card border border-border rounded-2xl p-6 max-w-xl w-full shadow-elevated relative max-h-[90vh] overflow-y-auto z-10"
+              className="bg-card border border-border rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-elevated relative max-h-[90vh] overflow-y-auto z-10 scrollbar-thin"
             >
-              {/* Close Button */}
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCloseModal}
                 className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="mb-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                    user?.id === 1 
+                      ? "bg-primary text-primary-foreground" 
+                      : user?.id === 2 
+                      ? "bg-amber-500 text-amber-950 font-extrabold" 
+                      : "bg-emerald-600 text-white"
+                  }`}>
+                    {user ? `ID ${user.id} · ${user.roleTitle}` : "Visitante"}
+                  </span>
+                  {user?.id === 3 && (
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                      (Entrará em estado pendente)
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-display font-bold text-2xl text-foreground">
-                  Nova publicação no Mural
+                  {isModerator ? "Nova Publicação Oficial" : user?.id === 3 ? "Enviar Sugestão de Postagem" : "Nova Publicação no Mural"}
                 </h3>
-                <p className="text-sm text-muted-foreground font-body mt-1">
-                  Compartilhe recados, projetos escolares, matérias técnicas ou eletivas com a comunidade.
+                <p className="text-xs text-muted-foreground font-body mt-1">
+                  {isModerator
+                    ? "Como moderador(a), esta publicação será publicada diretamente no Mural da escola."
+                    : "Compartilhe recados, projetos escolares ou eletivas. Seu post será revisado pelos professores antes de ser publicado."}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Select Tag (Category) */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
                     Categoria / Tag
@@ -826,12 +1173,11 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                   </div>
                 </div>
 
-                {/* Nome e Título */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label htmlFor="author" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Seu Nome & Turma / Cargo {!isAnonymous && "*"}
+                        Autor(a) {!isAnonymous && "*"}
                       </label>
                       <label className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground cursor-pointer select-none">
                         <input
@@ -853,7 +1199,7 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                       disabled={isAnonymous}
                       value={isAnonymous ? "Anônimo" : author}
                       onChange={(e) => setAuthor(e.target.value)}
-                      placeholder={isAnonymous ? "Seu nome será ocultado" : "Ex: João - 3º Ano B ou Profª Marina"}
+                      placeholder={isAnonymous ? "Seu nome será ocultado" : "Ex: João - 3º Ano B"}
                       className={`w-full px-3.5 py-2.5 text-sm border rounded-xl transition-colors focus:outline-none focus:border-primary/50 ${
                         isAnonymous 
                           ? "bg-muted/40 text-muted-foreground border-border/50 cursor-not-allowed" 
@@ -877,7 +1223,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                   </div>
                 </div>
 
-                {/* Subtítulo & Link */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="subtitle" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
@@ -907,7 +1252,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                   </div>
                 </div>
 
-                {/* Descrição */}
                 <div>
                   <label htmlFor="description" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                     Descrição / Mensagem *
@@ -923,7 +1267,6 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                   />
                 </div>
 
-                {/* Imagem (Mídia) */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                     Adicionar Imagem
@@ -951,7 +1294,7 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                       <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer py-2">
                         <Image className="w-7 h-7 text-muted-foreground mb-1" />
                         <span className="text-xs font-semibold text-foreground/80">Escolher uma foto</span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG (máx 5MB)</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG (máx 15MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -963,11 +1306,10 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                   </div>
                 </div>
 
-                {/* Botões do Formulário */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/50">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseModal}
                     className="px-4 py-2.5 rounded-xl border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
                   >
                     Cancelar
@@ -976,7 +1318,7 @@ const MuralSection = ({ user, onOpenLogin }: MuralSectionProps) => {
                     type="submit"
                     className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-school-red-dark active:scale-[0.98] transition-all shadow-sm flex items-center gap-1.5"
                   >
-                    <Plus className="w-4 h-4" /> Publicar
+                    <Plus className="w-4 h-4" /> {user?.id === 3 ? "Enviar para Moderação" : "Publicar no Mural"}
                   </button>
                 </div>
               </form>

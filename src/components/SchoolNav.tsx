@@ -25,8 +25,8 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <a href="#inicio" className="font-display text-xl font-bold text-primary tracking-tight">
-          Escola Ruy Rodriguez
+        <a href="#inicio" className="font-display text-xl md:text-2xl font-bold text-primary tracking-tight hover:opacity-90 transition-opacity">
+          Escola Ruy <span className="font-display font-bold text-foreground dark:text-white">Rodriguez</span>
         </a>
 
         {/* Desktop Links & Login */}
@@ -49,13 +49,15 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
           {user ? (
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">
-                <span className="text-xs font-semibold text-foreground max-w-[120px] truncate">{user.name}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                  user.role === "management" 
+                <span className="text-xs font-semibold text-foreground max-w-[140px] truncate">{user.name || (user as any).nome || "Usuário"}</span>
+                <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                  user.id === 1 
                     ? "bg-primary/10 text-primary border border-primary/20" 
+                    : user.id === 2
+                    ? "bg-amber-500/10 text-amber-700 border border-amber-500/20"
                     : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                 }`}>
-                  {user.role === "management" ? "Gestão" : "Estudante"}
+                  ID {user.id} · {user.roleTitle || "Acesso"}
                 </span>
               </div>
               <button
@@ -112,11 +114,19 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                      {user.name.substring(0, 2).toUpperCase()}
+                      {(user.name || (user as any).nome || "US").substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">{user.name}</span>
-                      <span className="text-[9px] text-muted-foreground">{user.email}</span>
+                      <span className="text-xs font-semibold text-foreground">{user.name || (user as any).nome || "Usuário"}</span>
+                      <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider mt-0.5 w-fit ${
+                        user.id === 1 
+                          ? "bg-primary/10 text-primary border border-primary/20" 
+                          : user.id === 2
+                          ? "bg-amber-500/10 text-amber-700 border border-amber-500/20"
+                          : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                      }`}>
+                        ID {user.id} · {user.roleTitle || "Acesso"}
+                      </span>
                     </div>
                   </div>
                   <button

@@ -69,9 +69,9 @@ const AboutSection = () => {
           transition={{ duration: 0.5 }}
           className="mb-20 flex justify-center"
         >
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <span className="text-sm font-semibold text-foreground">
+          <div className="inline-flex items-center gap-4 px-8 py-4.5 rounded-2xl bg-primary text-primary-foreground shadow-hero border border-primary/20 hover:scale-[1.03] transition-transform duration-300">
+            <BookOpen className="w-6 h-6 text-primary-foreground shrink-0" />
+            <span className="text-base md:text-lg font-extrabold tracking-wider uppercase">
               Programa de Ensino Integral (PEI)
             </span>
           </div>

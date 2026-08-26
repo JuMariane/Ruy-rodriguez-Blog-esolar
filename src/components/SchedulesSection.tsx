@@ -37,7 +37,7 @@ const SchedulesSection = () => {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 font-semibold text-sm">
-                  <Sun className="w-4 h-4" /> Turno da Manhã
+                  <Sun className="w-4 h-4" /> Turno Matutino
                 </div>
                 <div className="flex items-center gap-1 text-sm font-bold text-foreground/80">
                   <Clock className="w-4 h-4 text-amber-500" /> 07h00 - 14h00
@@ -101,7 +101,7 @@ const SchedulesSection = () => {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary font-semibold text-sm">
-                  <Moon className="w-4 h-4" /> Turno da Tarde / Noite
+                  <Moon className="w-4 h-4" /> Turno Vespertino / Noite
                 </div>
                 <div className="flex items-center gap-1 text-sm font-bold text-foreground/80">
                   <Clock className="w-4 h-4 text-primary" /> 14h15 - 21h15

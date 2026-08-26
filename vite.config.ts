@@ -4,11 +4,19 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
+  base: "./",
   server: {
     host: "::",
     port: 8080,
     hmr: {
       overlay: false,
+    },
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   plugins: [react()],
@@ -18,4 +26,3 @@ export default defineConfig(() => ({
     },
   },
 }));
-
