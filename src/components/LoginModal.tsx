@@ -390,76 +390,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }: LoginModalProps) => {
                   >
                     {activeTab === "login" ? "Acessar Portal" : "Criar Minha Conta"}
                   </button>
-                </form>
-
-                {/* Avisos de Formato Aceito SED */}
-                <div className="mt-5 p-3 rounded-xl bg-muted/60 border border-border text-[10px] text-muted-foreground space-y-1 font-body">
-                  <span className="font-bold text-foreground block">💡 Formatos de E-mail SED aceitos:</span>
-                  <p>• <strong>Alunos:</strong> formato [RA][Dígito]sp@al.educacao.sp.gov.br (ex: 0000110074650xsp@al.educacao.sp.gov.br)</p>
-                  <p>• <strong>Professores:</strong> termina em @professor.educacao.sp.gov.br</p>
-                  <p>• <strong>Diretores/Gestão:</strong> termina em @educacao.sp.gov.br</p>
-                </div>
-
-                {/* Divisor Banca TCC */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-[10px] uppercase">
-                    <span className="bg-card px-3 text-muted-foreground font-bold tracking-widest">
-                      Atalhos para Banca (TCC)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Perfis rápidos de teste (Júri) */}
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleQuickDemoLogin({
-                      id: 1,
-                      email: "marcio.rocha@professor.educacao.sp.gov.br",
-                      name: "Prof. Márcio Rocha",
-                      role: "professor",
-                      roleTitle: "Professor",
-                      emailSent: true
-                    })}
-                    className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all text-center"
-                  >
-                    <span className="text-[10px] font-black text-primary">ID 1</span>
-                    <span className="text-[9px] font-semibold text-foreground/80 mt-0.5">Professor</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleQuickDemoLogin({
-                      id: 2,
-                      email: "direcao@educacao.sp.gov.br",
-                      name: "Diretoria Ruy",
-                      role: "director",
-                      roleTitle: "Diretor",
-                      emailSent: true
-                    })}
-                    className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-all text-center"
-                  >
-                    <span className="text-[10px] font-black text-amber-700">ID 2</span>
-                    <span className="text-[9px] font-semibold text-foreground/80 mt-0.5">Diretor</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleQuickDemoLogin({
-                      id: 3,
-                      email: "0000110074650xsp@al.educacao.sp.gov.br",
-                      name: "Angelo Aluno",
-                      role: "student",
-                      roleTitle: "Aluno",
-                      emailSent: true
-                    })}
-                    className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all text-center"
-                  >
-                    <span className="text-[10px] font-black text-emerald-700">ID 3</span>
-                    <span className="text-[9px] font-semibold text-foreground/80 mt-0.5">Aluno</span>
-                  </button>
-                </div>
-              </>
+                </form>              </>
             )}
 
             {view === "forgot_password" && (
