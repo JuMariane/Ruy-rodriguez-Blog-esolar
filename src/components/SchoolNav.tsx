@@ -22,10 +22,30 @@ interface SchoolNavProps {
 const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
   const [open, setOpen] = useState(false);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const cleanId = href.replace(/^[#/]+/, "");
+    if (!cleanId || cleanId === "inicio") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.history.replaceState(null, "", "#inicio");
+    } else {
+      const target = document.getElementById(cleanId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", `#${cleanId}`);
+      }
+    }
+    setOpen(false);
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <a href="#inicio" className="font-display text-xl md:text-2xl font-bold text-primary tracking-tight hover:opacity-90 transition-opacity">
+        <a 
+          href="#inicio" 
+          onClick={(e) => handleNavClick(e, "#inicio")}
+          className="font-display text-xl md:text-2xl font-bold text-primary tracking-tight hover:opacity-90 transition-opacity cursor-pointer"
+        >
           Escola Ruy <span className="font-display font-bold text-foreground dark:text-white">Rodriguez</span>
         </a>
 
@@ -36,7 +56,8 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors duration-200"
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors duration-200 cursor-pointer"
                 >
                   {link.label}
                 </a>
@@ -102,8 +123,8 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="block text-sm font-medium text-foreground/70 hover:text-primary py-2"
-                    onClick={() => setOpen(false)}
+                    className="block text-sm font-medium text-foreground/70 hover:text-primary py-2 cursor-pointer"
+                    onClick={(e) => handleNavClick(e, link.href)}
                   >
                     {link.label}
                   </a>
@@ -159,3 +180,4 @@ const SchoolNav = ({ user, onLogout, onOpenLogin }: SchoolNavProps) => {
 };
 
 export default SchoolNav;
+

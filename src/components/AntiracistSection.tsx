@@ -407,7 +407,7 @@ const AntiracistSection = () => {
   ];
 
   return (
-    <section id="antirracista" className="py-24 relative overflow-hidden bg-background">
+    <section id="antirracista" className="py-24 relative overflow-hidden bg-background scroll-mt-16">
       {/* Pattern background */}
       <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
         <img src={patternBg} alt="" className="w-full h-full object-cover" />

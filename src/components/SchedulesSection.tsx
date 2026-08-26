@@ -3,7 +3,7 @@ import { Sun, Moon, Coffee, Utensils, Clock, Award, BookOpen, GraduationCap } fr
 
 const SchedulesSection = () => {
   return (
-    <section id="horarios" className="py-24 bg-school-cream border-y border-border">
+    <section id="horarios" className="py-24 bg-school-cream border-y border-border scroll-mt-16">
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div

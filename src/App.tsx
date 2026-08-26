@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
@@ -16,8 +15,18 @@ const App = () => (
       <HashRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/inicio" element={<Index />} />
+          <Route path="/sobre" element={<Index />} />
+          <Route path="/horarios" element={<Index />} />
+          <Route path="/horarios-fundamental" element={<Index />} />
+          <Route path="/horarios-medio" element={<Index />} />
+          <Route path="/vida-escolar" element={<Index />} />
+          <Route path="/mural" element={<Index />} />
+          <Route path="/antirracista" element={<Index />} />
+          <Route path="/documentos" element={<Index />} />
+          <Route path="/duvidas" element={<Index />} />
+          <Route path="/contato" element={<Index />} />
+          <Route path="*" element={<Index />} />
         </Routes>
       </HashRouter>
     </TooltipProvider>
@@ -25,3 +34,4 @@ const App = () => (
 );
 
 export default App;
+

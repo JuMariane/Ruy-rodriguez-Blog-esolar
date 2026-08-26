@@ -19,6 +19,16 @@ const HeroSection = ({
   const isModerator = user?.id === 1 || user?.id === 2;
   const isStudent = user?.id === 3;
 
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const cleanId = targetId.replace(/^[#/]+/, "");
+    const targetElement = document.getElementById(cleanId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `#${cleanId}`);
+    }
+  };
+
   return (
     <section id="inicio" className="relative min-h-[90vh] flex items-center overflow-hidden pt-16">
       {/* Background image */}
@@ -124,7 +134,10 @@ const HeroSection = ({
                 {/* Pending Requests Button */}
                 <a
                   href="#mural"
-                  onClick={() => onSelectModerationTab?.("pending")}
+                  onClick={(e) => {
+                    handleScrollTo(e, "#mural");
+                    onSelectModerationTab?.("pending");
+                  }}
                   className="relative inline-flex items-center gap-2.5 px-6 py-3.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-foreground font-bold text-sm transition-all shadow-hero active:scale-[0.98] hover:scale-[1.02] group cursor-pointer"
                 >
                   <Clock className="w-4 h-4 text-foreground animate-pulse" />
@@ -139,8 +152,11 @@ const HeroSection = ({
                 {/* Approved feed button */}
                 <a
                   href="#mural"
-                  onClick={() => onSelectModerationTab?.("approved")}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md transition-all border border-white/20 active:scale-[0.98]"
+                  onClick={(e) => {
+                    handleScrollTo(e, "#mural");
+                    onSelectModerationTab?.("approved");
+                  }}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md transition-all border border-white/20 active:scale-[0.98] cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Mural de Aprovados
                 </a>
@@ -149,7 +165,7 @@ const HeroSection = ({
                 <button
                   type="button"
                   onClick={onOpenCreatePost}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary hover:bg-school-red-dark text-primary-foreground font-bold text-sm transition-all active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary hover:bg-school-red-dark text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4" /> Nova Publicação
                 </button>
@@ -160,7 +176,7 @@ const HeroSection = ({
                 <button
                   type="button"
                   onClick={onOpenCreatePost}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary hover:bg-school-red-dark text-primary-foreground font-bold text-sm transition-all shadow-hero active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary hover:bg-school-red-dark text-primary-foreground font-bold text-sm transition-all shadow-hero active:scale-[0.98] cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4" /> Enviar Sugestão de Postagem
                 </button>
@@ -168,7 +184,8 @@ const HeroSection = ({
                 {/* Aluno: Explorar Mural */}
                 <a
                   href="#mural"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md transition-all border border-white/20 active:scale-[0.98]"
+                  onClick={(e) => handleScrollTo(e, "#mural")}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md transition-all border border-white/20 active:scale-[0.98] cursor-pointer"
                 >
                   Explorar Mural <ArrowRight className="w-4 h-4" />
                 </a>
@@ -178,13 +195,15 @@ const HeroSection = ({
                 {/* Guest Turn buttons */}
                 <a
                   href="#horarios-fundamental"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-amber-500 text-foreground font-semibold text-sm hover:bg-amber-600 transition-colors shadow-soft"
+                  onClick={(e) => handleScrollTo(e, "#horarios-fundamental")}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-amber-500 text-foreground font-semibold text-sm hover:bg-amber-600 transition-colors shadow-soft cursor-pointer"
                 >
                   <Sun className="w-4 h-4" /> Turno Matutino - Fundamental
                 </a>
                 <a
                   href="#horarios-medio"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-school-red-dark transition-colors shadow-hero"
+                  onClick={(e) => handleScrollTo(e, "#horarios-medio")}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-school-red-dark transition-colors shadow-hero cursor-pointer"
                 >
                   <Moon className="w-4 h-4" /> Turno Vespertino - Médio
                 </a>

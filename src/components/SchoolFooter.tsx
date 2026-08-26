@@ -11,6 +11,23 @@ const footerLinks = [
 ];
 
 const SchoolFooter = () => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const cleanId = href.replace(/^[#/]+/, "");
+      if (!cleanId || cleanId === "inicio") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.history.replaceState(null, "", "#inicio");
+      } else {
+        const target = document.getElementById(cleanId);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          window.history.replaceState(null, "", `#${cleanId}`);
+        }
+      }
+    }
+  };
+
   return (
     <footer className="bg-foreground py-12">
       <div className="container mx-auto px-4">
@@ -34,7 +51,8 @@ const SchoolFooter = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-primary-foreground/50 hover:text-primary-foreground/80 transition-colors font-body"
+                    onClick={(e) => handleLinkClick(e, link.href)}
+                    className="text-sm text-primary-foreground/50 hover:text-primary-foreground/80 transition-colors font-body cursor-pointer"
                   >
                     {link.label}
                   </a>

@@ -37,7 +37,7 @@ const features = [
 
 const AboutSection = () => {
   return (
-    <section id="sobre" className="py-24 bg-background">
+    <section id="sobre" className="py-24 bg-background scroll-mt-16">
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div

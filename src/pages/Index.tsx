@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import SchoolNav from "@/components/SchoolNav";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
@@ -14,13 +15,34 @@ import LoginModal, { UserType } from "@/components/LoginModal";
 import CookieConsent from "@/components/CookieConsent";
 
 const Index = () => {
+  const location = useLocation();
   const [user, setUser] = useState<UserType | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [activeModerationTab, setActiveModerationTab] = useState<"approved" | "pending">("approved");
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
 
+  // Auto-scroll to section on load or route/hash change
+  useEffect(() => {
+    const pathTarget = location.pathname.replace(/^\//, "");
+    const hashTarget = window.location.hash.replace(/^[#/]+/, "");
+    const targetId = pathTarget || hashTarget;
+
+    if (targetId && targetId !== "" && targetId !== "inicio") {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (targetId === "inicio" || (!pathTarget && !hashTarget)) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.pathname]);
+
   // Load user from localStorage on mount and normalize
+
   useEffect(() => {
     const savedUser = localStorage.getItem("ruy_user");
     if (savedUser) {
